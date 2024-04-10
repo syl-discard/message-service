@@ -58,6 +58,8 @@ func main() {
 	logger.FailOnError(err, "Failed to start consuming messages")
 
 	forever := make(chan bool)
+
+	// Keep consuming messages
 	go func() {
 		for d := range messages {
 			logger.LOG.Printf("Received a message: %s\n", d.Body)
@@ -65,6 +67,7 @@ func main() {
 	}()
 	logger.LOG.Printf("Waiting for messages... To exit press CTRL+C")
 
+	// Start GIN API server
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.GET(
@@ -75,5 +78,7 @@ func main() {
 	logger.LOG.Printf("Starting API server on %v...\n", fullAddress)
 	logger.LOG.Printf("API server started on %v!\n", fullAddress)
 	logger.FailOnError(router.Run(fullAddress), "Failed to run the server")
+
+	// Run continuously
 	<-forever
 }
