@@ -4,6 +4,7 @@ import (
 	"discard/message-service/pkg/api"
 	"discard/message-service/pkg/configuration"
 	logger "discard/message-service/pkg/models/logger"
+	"net/http"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -18,6 +19,40 @@ const (
 )
 
 func main() {
+	// Start GIN API server + DB connection
+	configuration := configuration.Configuration{
+		APISettings: configuration.APISettings{
+			Address: ADDRESS,
+			Port:    PORT,
+		},
+		DatabaseSettings: configuration.DatabaseSettings{
+			Url:      DATABASE_URL,
+			Keyspace: DATABASE_KEYSPACE,
+		},
+	}
+
+	go api.InitializeAPI(configuration)
+
+	apiReady := false
+	for !apiReady {
+		request, err := http.NewRequest("GET", "http://"+ADDRESS+":"+PORT+"/ping", nil)
+		if err != nil {
+			logger.WARN.Println("API not ready, retrying in 1 second...")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		_, err = http.DefaultClient.Do(request)
+		if err != nil {
+			logger.WARN.Println("API not ready, retrying in 1 second...")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		apiReady = true
+	}
+
+	// Start RabbitMQ connection
 	rabbitConnected := false
 	var activeConnection *amqp.Connection = nil
 	for !rabbitConnected {
@@ -68,20 +103,5 @@ func main() {
 	}()
 	logger.LOG.Printf("Waiting for messages... To exit press CTRL+C")
 
-	// Start GIN API server + DB connection
-	configuration := configuration.Configuration{
-		APISettings: configuration.APISettings{
-			Address: ADDRESS,
-			Port:    PORT,
-		},
-		DatabaseSettings: configuration.DatabaseSettings{
-			Url:      DATABASE_URL,
-			Keyspace: DATABASE_KEYSPACE,
-		},
-	}
-
-	api.InitializeAPI(configuration)
-
-	// Run continuously
 	<-forever
 }
