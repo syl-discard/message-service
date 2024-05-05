@@ -1,12 +1,12 @@
 package main
 
 import (
-	"discard/message-service/pkg/controllers"
+	"discard/message-service/pkg/api"
+	"discard/message-service/pkg/configuration"
 	logger "discard/message-service/pkg/models/logger"
-	"strings"
+	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -14,19 +14,55 @@ const (
 	ADDRESS                 string = "0.0.0.0"
 	PORT                    string = "8080"
 	RABBITMQ_SERVER_ADDRESS string = "amqp://guest:guest@rabbitmq:5672/"
+	DATABASE_URL            string = "message-db"
+	DATABASE_KEYSPACE       string = "messages"
 )
 
 func main() {
-	connected := false
+	// Start GIN API server + DB connection
+	configuration := configuration.Configuration{
+		APISettings: configuration.APISettings{
+			Address: ADDRESS,
+			Port:    PORT,
+		},
+		DatabaseSettings: configuration.DatabaseSettings{
+			Url:      DATABASE_URL,
+			Keyspace: DATABASE_KEYSPACE,
+		},
+	}
+
+	go api.InitializeAPI(configuration)
+
+	apiReady := false
+	for !apiReady {
+		request, err := http.NewRequest("GET", "http://"+ADDRESS+":"+PORT+"/ping", nil)
+		if err != nil {
+			logger.WARN.Println("API not ready, retrying in 1 second...")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		_, err = http.DefaultClient.Do(request)
+		if err != nil {
+			logger.WARN.Println("API not ready, retrying in 1 second...")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		apiReady = true
+	}
+
+	// Start RabbitMQ connection
+	rabbitConnected := false
 	var activeConnection *amqp.Connection = nil
-	for !connected {
+	for !rabbitConnected {
 		conn, err := amqp.Dial(RABBITMQ_SERVER_ADDRESS)
 		if err != nil {
 			logger.WARN.Println("Failed to connect to RabbitMQ, retrying in 5 seconds...")
 			time.Sleep(5 * time.Second)
 		} else {
 			activeConnection = conn
-			connected = true
+			rabbitConnected = true
 		}
 	}
 	defer activeConnection.Close()
@@ -67,18 +103,5 @@ func main() {
 	}()
 	logger.LOG.Printf("Waiting for messages... To exit press CTRL+C")
 
-	// Start GIN API server
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	router.GET(
-		"/ping",
-		controllers.Ping,
-	)
-	fullAddress := strings.Join([]string{ADDRESS, PORT}, ":")
-	logger.LOG.Printf("Starting API server on %v...\n", fullAddress)
-	logger.LOG.Printf("API server started on %v!\n", fullAddress)
-	logger.FailOnError(router.Run(fullAddress), "Failed to run the server")
-
-	// Run continuously
 	<-forever
 }
