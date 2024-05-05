@@ -1,5 +1,7 @@
-name: Example workflow for Golang using Snyk
+name: Workflow for Golang using Snyk
 on: push
+permissions:
+  security-events: write
 jobs:
   security:
     runs-on: ubuntu-latest
