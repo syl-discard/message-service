@@ -21,7 +21,7 @@
 !README.md
 !LICENSE
 
-# Github Actions workflow files
+# Github Actions workflows
 !/.github/workflows/*.yml
 
 # !Makefile
