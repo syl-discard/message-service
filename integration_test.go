@@ -11,6 +11,7 @@ import (
 
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/rabbitmq"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func TestSimpleRabbitMQStart(t *testing.T) {
@@ -80,30 +81,32 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 	ctx := context.Background()
 	rabbitMQ, err := rabbitmq.RunContainer(ctx,
 		testcontainers.WithImage("rabbitmq:3.13-management-alpine"),
-		rabbitmq.WithAdminUsername("admin"),
-		rabbitmq.WithAdminPassword("root"),
 	)
 	logger.FailOnError(err, "Failed to start RabbitMQ container")
-	mqport, _ := rabbitMQ.MappedPort(ctx, "5672")
-	dsn := fmt.Sprintf("amqp://guest:guest@127.0.0.1:%s/", mqport.Port())
-	logger.FailOnError(err, "Failed to get RabbitMQ connection URL")
-	logger.LOG.Println("RabbitMQ connection URL: ", dsn)
+	amqpaddress, err := rabbitMQ.AmqpURL(ctx)
+	logger.FailOnError(err, "Failed to get RabbitMQ AMQP URL")
+	// rabbitMQhost, err := rabbitMQ.Host(ctx)
+	// logger.FailOnError(err, "Failed to get RabbitMQ host")
+	// rabbitMQport, err := rabbitMQ.MappedPort(ctx, "5672/tcp")
+	// logger.FailOnError(err, "Failed to get RabbitMQ port")
+	rabbitMQURL := amqpaddress
+	logger.LOG.Println("RabbitMQ URL: ", rabbitMQURL)
 
 	req := testcontainers.ContainerRequest{
 		Image:        "ghcr.io/syl-discard/message-service:main",
 		ExposedPorts: []string{"8080/tcp"},
 		Env: map[string]string{
-			"RABBITMQ_SERVER_ADDRESS": dsn,
+			"RABBITMQ_SERVER_ADDRESS": rabbitMQURL,
 			"DISCARD_STATE":           "INTEGRATION",
 		},
-		// WaitingFor: wait.ForLog(".*Successfully connected to RabbitMQ!.*").AsRegexp(),
+		WaitingFor: wait.ForLog(".*Successfully connected to RabbitMQ!.*").AsRegexp(),
 	}
 	messageServiceContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
-	messageServiceContainer.StartLogProducer(ctx)
-	messageServiceContainer.FollowOutput(&TestLogConsumer{})
+	messageServiceContainer.StartLogProducer(ctx)            // deprecated, TODO: remove
+	messageServiceContainer.FollowOutput(&TestLogConsumer{}) // deprecated, TODO: remove
 
 	logger.FailOnError(err, "Failed to start message-service container")
 	logger.LOG.Println("Message service container started")
@@ -134,7 +137,7 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 	}
 
 	// http request to ping
-	response, err := http.Get("http://" + host + ":8080/ping")
+	response, err := http.Get("http://" + host + ":" + port.Port() + "/ping")
 	logger.FailOnError(err, "Failed to ping message-service container")
 	logger.LOG.Println("Message service container ping response: ", response)
 
