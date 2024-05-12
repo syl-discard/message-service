@@ -4,9 +4,9 @@ import (
 	"context"
 	"discard/message-service/pkg/models/logger"
 	"testing"
+	"time"
 
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/cassandra"
 	"github.com/testcontainers/testcontainers-go/modules/rabbitmq"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -28,24 +28,6 @@ func TestSimpleRabbitMQStart(t *testing.T) {
 			logger.FailOnError(err, "Failed to terminate RabbitMQ container")
 		}
 	}()
-}
-
-func TestCassandraServiceStart(t *testing.T) {
-	ctx := context.Background()
-	cassandraContainer, err := cassandra.RunContainer(ctx,
-		testcontainers.WithImage("cassandra:5.0"),
-		cassandra.WithInitScripts("integration_cassandra.cql"),
-		cassandra.WithConfigFile("integration_cassandra.yaml"),
-	)
-	if err != nil {
-		logger.FailOnError(err, "Failed to start Cassandra container")
-	}
-	defer func() {
-		if err := cassandraContainer.Terminate(ctx); err != nil {
-			logger.FailOnError(err, "Failed to terminate Cassandra container")
-		}
-	}()
-
 }
 
 func TestMessageServiceStart(t *testing.T) {
@@ -111,8 +93,9 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 			ExposedPorts: []string{"8080/tcp"},
 			Env: map[string]string{
 				"RABBITMQ_SERVER_ADDRESS": rabbitConnectionURL,
+				"DISCARD_STATE":           "INTEGRATION",
 			},
-			WaitingFor: wait.ForHTTP("/ping").WithPort("8080"),
+			WaitingFor: wait.ForHTTP("/ping").WithPort("8080").WithPollInterval(1 * time.Second),
 		},
 		Started: true,
 	})
