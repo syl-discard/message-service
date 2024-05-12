@@ -38,6 +38,7 @@ func main() {
 
 	apiReady := false
 	for !apiReady {
+		logger.LOG.Println("Environment: ", os.Getenv("DISCARD_STATE"))
 		request, err := http.NewRequest("GET", "http://"+ADDRESS+":"+PORT+"/ping", nil)
 		if err != nil {
 			logger.WARN.Println("API not ready, retrying in 1 second...")
@@ -62,6 +63,8 @@ func main() {
 		conn, err := amqp.Dial(RABBITMQ_SERVER_ADDRESS)
 		if err != nil {
 			logger.WARN.Println("Failed to connect to RabbitMQ, retrying in 5 seconds...")
+			logger.WARN.Println(err)
+			logger.WARN.Println("RabbitMQ URL: ", RABBITMQ_SERVER_ADDRESS)
 			time.Sleep(5 * time.Second)
 		} else {
 			activeConnection = conn
