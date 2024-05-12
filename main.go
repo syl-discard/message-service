@@ -18,7 +18,7 @@ func main() {
 		ADDRESS                 string = "0.0.0.0"
 		PORT                    string = "8080"
 		RABBITMQ_SERVER_ADDRESS string = os.Getenv("RABBITMQ_SERVER_ADDRESS")
-		DATABASE_URL            string = "message-db"
+		DATABASE_URL            string = os.Getenv("DATABASE_URL")
 		DATABASE_KEYSPACE       string = "messages"
 	)
 
