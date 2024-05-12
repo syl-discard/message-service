@@ -2,7 +2,8 @@ name: Create and publish to Github Packages
 
 on:
     workflow_run:
-        workflows: ["Go / Go CI"]
+        workflows:
+            - Go
         types:
             - completed
 
@@ -23,6 +24,9 @@ jobs:
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
+              # https://stackoverflow.com/a/65081720
+              with:
+                  ref: ${{ github.event.workflow_run.head_branch }}
 
             - name: Login to the Container Registry
               uses: docker/login-action@v3
