@@ -2,7 +2,7 @@ name: Create and publish to Github Packages
 
 on:
     workflow_run:
-        workflows: ["Go / Go CI"]
+        workflows: ["Go"]
         types:
             - completed
 
