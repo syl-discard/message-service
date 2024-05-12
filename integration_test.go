@@ -41,7 +41,12 @@ func getRabbitMQContainer(ctx context.Context, network *testcontainers.DockerNet
 }
 
 func TestSimpleRabbitMQStart(t *testing.T) {
-	rabbitMQ, err := getRabbitMQContainer(context.Background(), nil)
+	net, err := getBridgedTestNetwork(context.Background())
+	if err != nil {
+		logger.FailOnError(err, "Failed to create network")
+	}
+
+	rabbitMQ, err := getRabbitMQContainer(context.Background(), net)
 	if err != nil {
 		logger.FailOnError(err, "Failed to create RabbitMQ container ")
 	}
