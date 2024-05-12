@@ -24,6 +24,9 @@
 # Github Actions workflows
 !/.github/workflows/*.yml
 
+# integration testing
+!integration_*
+
 # !Makefile
 
 # ...even if they are in subdirectories
