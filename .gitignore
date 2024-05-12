@@ -21,6 +21,9 @@
 !README.md
 !LICENSE
 
+# Github Actions workflow files
+!/.github/workflows/*.yml
+
 # !Makefile
 
 # ...even if they are in subdirectories
