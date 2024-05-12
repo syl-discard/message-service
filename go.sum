@@ -156,6 +156,8 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/testcontainers/testcontainers-go v0.31.0 h1:W0VwIhcEVhRflwL9as3dhY6jXjVCA27AkmbnZ+UTh3U=
 github.com/testcontainers/testcontainers-go v0.31.0/go.mod h1:D2lAoA0zUFiSY+eAflqK5mcUx/A5hrrORaEQrd0SefI=
+github.com/testcontainers/testcontainers-go/modules/cassandra v0.31.0 h1:S2YFbFw1HkBzvXl//+cHvtmPUlYziy2xkI3+2MdP2ZQ=
+github.com/testcontainers/testcontainers-go/modules/cassandra v0.31.0/go.mod h1:4nzmzSxB16qLO5Y38iZNhakFmzgjsJnBQ/BgCX8BIVs=
 github.com/testcontainers/testcontainers-go/modules/rabbitmq v0.31.0 h1:kEeUIlA6wq49A6tCPretm0lYIH8luFSKfETNQS3IfGc=
 github.com/testcontainers/testcontainers-go/modules/rabbitmq v0.31.0/go.mod h1:UOFksviUUa4PBv2ADO5EhIFwy20G0A5wFl2qGAYJ7m0=
 github.com/tklauser/go-sysconf v0.3.12 h1:0QaGUFOdQaIVdPgfITYzaTegZvdCjmYO52cSFAEVmqU=
