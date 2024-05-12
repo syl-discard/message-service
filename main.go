@@ -5,20 +5,23 @@ import (
 	"discard/message-service/pkg/configuration"
 	logger "discard/message-service/pkg/models/logger"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-const (
-	ADDRESS                 string = "0.0.0.0"
-	PORT                    string = "8080"
-	RABBITMQ_SERVER_ADDRESS string = "amqp://guest:guest@rabbitmq:5672/"
-	DATABASE_URL            string = "message-db"
-	DATABASE_KEYSPACE       string = "messages"
-)
-
 func main() {
+	godotenv.Load()
+	var (
+		ADDRESS                 string = "0.0.0.0"
+		PORT                    string = "8080"
+		RABBITMQ_SERVER_ADDRESS string = os.Getenv("RABBITMQ_SERVER_ADDRESS")
+		DATABASE_URL            string = "message-db"
+		DATABASE_KEYSPACE       string = "messages"
+	)
+
 	// Start GIN API server + DB connection
 	configuration := configuration.Configuration{
 		APISettings: configuration.APISettings{
