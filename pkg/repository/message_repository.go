@@ -44,3 +44,27 @@ func (repository *messageRepository) GetById(id string) (*models.Message, error)
 
 	return &message, nil
 }
+
+// === Integration Test ===
+type inMemoryMessageRepository struct {
+	messages []*models.Message
+}
+
+func NewInMemoryMessageRepository() MessageRepository {
+	return &inMemoryMessageRepository{
+		messages: make([]*models.Message, 0)}
+}
+
+func (repository *inMemoryMessageRepository) Save(message models.Message) (*models.Message, error) {
+	repository.messages = append(repository.messages, &message)
+	return &message, nil
+}
+
+func (repository *inMemoryMessageRepository) GetById(id string) (*models.Message, error) {
+	for _, message := range repository.messages {
+		if message.ID == id {
+			return message, nil
+		}
+	}
+	return nil, nil
+}

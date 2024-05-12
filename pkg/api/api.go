@@ -6,6 +6,7 @@ import (
 	"discard/message-service/pkg/database"
 	"discard/message-service/pkg/models/logger"
 	"discard/message-service/pkg/repository"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,15 +14,23 @@ import (
 func InitializeAPI(configuration configuration.Configuration) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	databaseSession := database.ConnectToDatabase(
-		configuration.DatabaseSettings.Url,
-		configuration.DatabaseSettings.Keyspace,
-	)
+	var messageRepository repository.MessageRepository
+	var messageHandler controllers.MessageHandler
 
-	defer databaseSession.Close()
+	if os.Getenv("DISCARD_STATE") != "INTEGRATION" {
+		databaseSession := database.ConnectToDatabase(
+			configuration.DatabaseSettings.Url,
+			configuration.DatabaseSettings.Keyspace,
+		)
 
-	messageRepository := repository.NewMessageRepository(databaseSession)
-	messageHandler := controllers.NewMessageHandler(&messageRepository)
+		defer databaseSession.Close()
+
+		messageRepository = repository.NewMessageRepository(databaseSession)
+		messageHandler = controllers.NewMessageHandler(&messageRepository)
+	} else {
+		messageRepository = repository.NewInMemoryMessageRepository()
+		messageHandler = controllers.NewMessageHandler(&messageRepository)
+	}
 
 	// endpoints
 	router.GET("/ping", controllers.Ping)
