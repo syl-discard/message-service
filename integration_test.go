@@ -200,7 +200,7 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 	logger.FailOnError(err, "Failed to send delete user request")
 	responseBody, _ := io.ReadAll(response.Body)
 	logger.LOG.Println("User delete response: ", string(responseBody))
-	wait.ForLog(".*Received a message: Deletion request.*").AsRegexp().WithPollInterval(25 * time.Millisecond)
+	wait.ForLog(".*Received a message: Deletion request.*").AsRegexp().WithPollInterval(500 * time.Millisecond)
 
 	logs, err := messageServiceContainer.Logs(ctx)
 	logger.FailOnError(err, "Failed to get message-service container logs")
