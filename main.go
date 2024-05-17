@@ -39,7 +39,7 @@ func main() {
 	apiReady := false
 	for !apiReady {
 		logger.LOG.Println("Environment: ", os.Getenv("DISCARD_STATE"))
-		request, err := http.NewRequest("GET", "http://"+ADDRESS+":"+PORT+"/ping", nil)
+		request, err := http.NewRequest("GET", "http://"+ADDRESS+":"+PORT+"/api/v1/message/ping", nil)
 		if err != nil {
 			logger.WARN.Println("API not ready, retrying in 1 second...")
 			time.Sleep(1 * time.Second)
