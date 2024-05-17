@@ -189,8 +189,6 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 	userPingResponse, err := http.Get("http://" + userHost + ":" + userPort.Port() + "/api/v1/ping")
 	logger.FailOnError(err, "Failed to ping user-service container")
 	logger.LOG.Println("User service container ping response: ", userPingResponse)
-	assert.Equal(t, userPingResponse.StatusCode, 200)
-
 	assert.Equal(t, 200, userPingResponse.StatusCode)
 
 	// send post request to user to delete
