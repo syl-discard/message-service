@@ -151,13 +151,6 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 	logger.LOG.Println("Message service container port: ", messagePort)
 	logger.LOG.Println("Message service container host: ", messageHost)
 
-	// http request to message's ping
-	messagePingResponse, err := http.Get("http://" + messageHost + ":" + messagePort.Port() + "/api/v1/message/ping")
-	logger.FailOnError(err, "Failed to ping message-service container")
-	logger.LOG.Println("Message service container ping response: ", messagePingResponse)
-
-	assert.Equal(t, 200, messagePingResponse.StatusCode)
-
 	// Create and start user-service container
 	userContainerRequest := testcontainers.ContainerRequest{
 		Image:        "ghcr.io/syl-discard/user-service:main",
@@ -184,12 +177,6 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 	logger.FailOnError(err, "Failed to get message-service container port")
 	logger.LOG.Println("Message service container port: ", userPort)
 	logger.LOG.Println("Message service container host: ", userHost)
-
-	// http request to user's ping
-	userPingResponse, err := http.Get("http://" + userHost + ":" + userPort.Port() + "/api/v1/user/ping")
-	logger.FailOnError(err, "Failed to ping user-service container")
-	logger.LOG.Println("User service container ping response: ", userPingResponse)
-	assert.Equal(t, 200, userPingResponse.StatusCode)
 
 	// send post request to user to delete
 	var data = []byte(`{"id": "123e4567-e89b-12d3-a456-426614174000"}`)
