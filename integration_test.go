@@ -153,9 +153,8 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 
 	// http request to message's ping
 	messagePingResponse, err := http.Get("http://" + messageHost + ":" + messagePort.Port() + "/api/v1/message/ping")
-	logger.FailOnError(err, "Failed to ping message-service container")
+	logger.FailOnError(err, "Failed to ping Message-service container")
 	logger.LOG.Println("Message service container ping response: ", messagePingResponse)
-
 	assert.Equal(t, 200, messagePingResponse.StatusCode)
 
 	// Create and start user-service container
@@ -179,11 +178,11 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 
 	logger.LOG.Println("User service container started")
 	userHost, err := userServiceContainer.Host(ctx)
-	logger.FailOnError(err, "Failed to get message-service container host")
+	logger.FailOnError(err, "Failed to get User-service container host")
 	userPort, err := userServiceContainer.MappedPort(ctx, "8080")
-	logger.FailOnError(err, "Failed to get message-service container port")
-	logger.LOG.Println("Message service container port: ", userPort)
-	logger.LOG.Println("Message service container host: ", userHost)
+	logger.FailOnError(err, "Failed to get User-service container port")
+	logger.LOG.Println("User service container port: ", userPort)
+	logger.LOG.Println("User service container host: ", userHost)
 
 	// http request to user's ping
 	userPingResponse, err := http.Get("http://" + userHost + ":" + userPort.Port() + "/api/v1/user/ping")
@@ -193,7 +192,7 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 
 	// send post request to user to delete
 	var data = []byte(`{"id": "123e4567-e89b-12d3-a456-426614174000"}`)
-	userDeleteRequest, err := http.NewRequest("POST", "http://"+userHost+":"+userPort.Port()+"/delete-user", bytes.NewBuffer(data))
+	userDeleteRequest, err := http.NewRequest("POST", "http://"+userHost+":"+userPort.Port()+"/api/v1/user/delete", bytes.NewBuffer(data))
 	logger.FailOnError(err, "Failed to create delete user request")
 	userDeleteRequest.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
@@ -201,20 +200,27 @@ func TestDeletionMessageFromUserToMessageService(t *testing.T) {
 	logger.FailOnError(err, "Failed to send delete user request")
 	responseBody, _ := io.ReadAll(response.Body)
 	logger.LOG.Println("User delete response: ", string(responseBody))
-	wait.ForLog(".*Received a message: Deletion request.*").AsRegexp().WithPollInterval(25 * time.Millisecond)
+	wait.ForLog(".*Received a message: Deletion request.*").AsRegexp().WithPollInterval(500 * time.Millisecond)
 
 	logs, err := messageServiceContainer.Logs(ctx)
 	logger.FailOnError(err, "Failed to get message-service container logs")
 	all, _ := io.ReadAll(logs)
 	logger.LOG.Println("Message service container logs: ")
-	logger.LOG.Println("====================BEGIN LOGS===============")
+	logger.LOG.Println("====================BEGIN CONTAINER LOGS===============")
 	logger.LOG.Println("\n", string(all))
-	logger.LOG.Println("====================END LOGS=================")
+	logger.LOG.Println("====================END CONTAINER LOGS=================")
+	userLogs, err := userServiceContainer.Logs(ctx)
+	logger.FailOnError(err, "Failed to get message-service container logs")
+	userAll, _ := io.ReadAll(userLogs)
+	logger.LOG.Println("User service container logs: ")
+	logger.LOG.Println("====================BEGIN CONTAINER LOGS===============")
+	logger.LOG.Println("\n", string(userAll))
+	logger.LOG.Println("====================END CONTAINER LOGS=================")
 
 	// Test for receiving deletion request
 	lines := strings.Split(strings.TrimSpace(string(all)), "\n")
 	lastLine := lines[len(lines)-1]
-	assert.Contains(t, lastLine, "Received a message: Deletion request for user: 123e4567-e89b-12d3-a456-426614174000")
+	assert.Contains(t, lastLine, "Received a message: Deletion request gotten for user: 123e4567-e89b-12d3-a456-426614174000")
 
 	defer func() {
 		if err := rabbitMQ.Terminate(ctx); err != nil {
