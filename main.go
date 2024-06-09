@@ -19,6 +19,9 @@ func main() {
 		PORT                    string = "8080"
 		RABBITMQ_SERVER_ADDRESS string = os.Getenv("RABBITMQ_SERVER_ADDRESS")
 		DATABASE_URL            string = os.Getenv("DATABASE_URL")
+		DATABASE_PROVIDER       string = os.Getenv("DATABASE_PROVIDER")
+		ASTRA_DATABASE_ID       string = os.Getenv("ASTRA_DATABASE_ID")
+		ASTRA_TOKEN             string = os.Getenv("ASTRA_TOKEN")
 		DATABASE_KEYSPACE       string = "messages"
 	)
 
@@ -29,8 +32,11 @@ func main() {
 			Port:    PORT,
 		},
 		DatabaseSettings: configuration.DatabaseSettings{
-			Url:      DATABASE_URL,
-			Keyspace: DATABASE_KEYSPACE,
+			Url:        DATABASE_URL,
+			Keyspace:   DATABASE_KEYSPACE,
+			Provider:   DATABASE_PROVIDER,
+			AstraId:    ASTRA_DATABASE_ID,
+			AstraToken: ASTRA_TOKEN,
 		},
 	}
 

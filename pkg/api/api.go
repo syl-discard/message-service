@@ -19,8 +19,7 @@ func InitializeAPI(configuration configuration.Configuration) {
 
 	if os.Getenv("DISCARD_STATE") != "INTEGRATION" {
 		databaseSession := database.ConnectToDatabase(
-			configuration.DatabaseSettings.Url,
-			configuration.DatabaseSettings.Keyspace,
+			configuration,
 		)
 
 		defer databaseSession.Close()
