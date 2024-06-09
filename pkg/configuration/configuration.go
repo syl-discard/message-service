@@ -6,8 +6,11 @@ type Configuration struct {
 }
 
 type DatabaseSettings struct {
-	Url      string
-	Keyspace string
+	Url        string
+	Keyspace   string
+	Provider   string
+	AstraId    string // only used when provider is astra
+	AstraToken string // only used when provider is astra
 }
 
 type APISettings struct {
