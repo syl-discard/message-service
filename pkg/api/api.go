@@ -35,6 +35,8 @@ func InitializeAPI(configuration configuration.Configuration) {
 	router.GET("/api/v1/message/ping", controllers.Ping)
 	router.POST("/api/v1/message", messageHandler.SaveMessage)
 	router.GET("/api/v1/message/:id", messageHandler.GetMessageById)
+	router.GET("/api/v1/message/user/:id", messageHandler.GetMessagesByUserId)
+	router.DELETE("/api/v1/message/user/:id", messageHandler.DeleteMessagesByUserId)
 
 	fullAddress :=
 		configuration.APISettings.Address + ":" + configuration.APISettings.Port
