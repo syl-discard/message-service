@@ -6,6 +6,8 @@ import (
 	logger "discard/message-service/pkg/models/logger"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -23,6 +25,7 @@ func main() {
 		ASTRA_DATABASE_ID       string = os.Getenv("ASTRA_DATABASE_ID")
 		ASTRA_TOKEN             string = os.Getenv("ASTRA_TOKEN")
 		DATABASE_KEYSPACE       string = "messages"
+		DELETION_REQUEST_STRING string = "Deletion request gotten for user: "
 	)
 
 	// Start GIN API server + DB connection
@@ -111,6 +114,24 @@ func main() {
 	go func() {
 		for d := range messages {
 			logger.LOG.Printf("Received a message: %s\n", d.Body)
+			isUserDeletionRequest := strings.HasPrefix(string(d.Body), DELETION_REQUEST_STRING)
+			logger.LOG.Println("isUserDeletionRequest: ", isUserDeletionRequest)
+			if isUserDeletionRequest {
+				logger.LOG.Println("Received a deletion request, parsing...")
+				re := regexp.MustCompile(DELETION_REQUEST_STRING + `(.*)`)
+				match := re.FindStringSubmatch(string(d.Body))
+				request, err := http.NewRequest("DELETE", "http://"+ADDRESS+":"+PORT+"/api/v1/message/user/"+match[1], nil)
+				if err == nil {
+					_, err = http.DefaultClient.Do(request)
+					if err != nil {
+						logger.WARN.Println("Failed to send deletion request to API")
+					} else {
+						logger.LOG.Println("Successfully sent deletion request to API")
+					}
+				} else {
+					logger.WARN.Println("Failed to create deletion request")
+				}
+			}
 		}
 	}()
 	logger.LOG.Printf("Waiting for messages... To exit press CTRL+C")
